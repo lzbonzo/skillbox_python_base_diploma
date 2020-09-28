@@ -3,16 +3,14 @@
 # pip install -r requirements.txt
 
 from astrobox.space_field import SpaceField
-# TODO класс своего дрона назвать по особенному
-#  и вынести в отдельный модуль. Модуль назвать своей фамилией
-from vader import VaderDrone
+from allaberdin import Spinozavr
 
 
 if __name__ == '__main__':
     scene = SpaceField(
-        speed=3,
+        speed=10,
         asteroids_count=5,
     )
-    d = VaderDrone()
+    d = Spinozavr()
     scene.go()
 
