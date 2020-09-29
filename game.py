@@ -11,6 +11,7 @@ if __name__ == '__main__':
         speed=10,
         asteroids_count=5,
     )
+
     d = Spinozavr()
     scene.go()
 
