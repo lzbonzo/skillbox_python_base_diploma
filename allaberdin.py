@@ -36,5 +36,6 @@ class Spinozavr(Drone):
         for i in range(len(distances)):
             for asteroid in self.asteroids:
                 if self.distance_to(asteroid) == distances[i]:
+                    # TODO - Второй if можно заменить операндом and
                     if not asteroid.is_empty:
                         return asteroid
