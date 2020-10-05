@@ -18,15 +18,14 @@ class AllaberdinDrone(Drone):
         self.load_from(asteroid)
 
     # def on_overlap_with(self, obj_status):
-    #     if self.is_loaded != obj_status:
-    #         if obj_status in self.teammates:
-    #             if 300 < self.distance_to(self.mothership):
-    #                 if self.is_empty and obj_status.is_full:
-    #                     self.move_at(obj_status)
-    #                     obj_status.move_at(self)
-    #                     self.load_from(obj_status)
-    #                     return
-    #                       TODO решить проблему с бесконечным обменом между дронами
+    #     if obj_status in self.teammates:
+    #         if 300 < self.distance_to(self.mothership):
+    #             if self.is_empty and obj_status.is_full:
+    #                 self.move_at(obj_status)
+    #                 obj_status.move_at(self)
+    #                 self.load_from(obj_status)
+    #                 return
+    # TODO решить проблему с бесконечным обменом между дронами
 
     def sum_distance(self):
         # TODO Как говорится, важно не как проголосуют, а как посчитают))
