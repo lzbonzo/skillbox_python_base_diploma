@@ -8,7 +8,7 @@ from allaberdin import AllaberdinDrone
 
 if __name__ == '__main__':
     scene = SpaceField(
-        speed=3,
+        speed=7,
         asteroids_count=20,
     )
 
