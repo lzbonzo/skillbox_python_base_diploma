@@ -4,15 +4,20 @@
 
 from astrobox.space_field import SpaceField
 from allaberdin import AllaberdinDrone
+from stage_03_harvesters.driller import DrillerDrone
+
+
+NUMBER_OF_DRONES = 5
 
 
 if __name__ == '__main__':
     scene = SpaceField(
-        speed=3,
-        asteroids_count=10,
+        speed=5,
+        asteroids_count=20,
     )
 
-    d = [AllaberdinDrone() for _ in range(5)]
+    my_drones = [AllaberdinDrone() for _ in range(NUMBER_OF_DRONES)]
+    enemy_drones = [DrillerDrone() for _ in range(NUMBER_OF_DRONES)]
     scene.go()
 
 # Первый этап: зачёт!
