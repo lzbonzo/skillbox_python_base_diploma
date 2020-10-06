@@ -5,6 +5,7 @@ from astrobox.core import Drone
 class AllaberdinDrone(Drone):
 
     def __init__(self):
+        # TODO - Неплохо бы проинспектировать используемый метод в супер-классе. там кварги в параметрах
         super().__init__()
         self.full_charged_distance = 0
         self.not_empty_distance = 0
@@ -25,12 +26,16 @@ class AllaberdinDrone(Drone):
     #                 obj_status.move_at(self)
     #                 self.load_from(obj_status)
     #                 return
-    # TODO решить проблему с бесконечным обменом между дронами
+    # - решить проблему с бесконечным обменом между дронами
+    # TODO - Могу предложить сделать флаг дрона отдающий/принимающий. И в зависимости от него действовать.
+    #  Далее принявший сбрасывает флаг принимающего, когда разгрузился на базе
+
 
     def sum_distance(self):
-        # TODO Как говорится, важно не как проголосуют, а как посчитают))
+        # - Как говорится, важно не как проголосуют, а как посчитают))
         #  Я указал, что если дрон заполнен на 80%, то его уже можно считать полным.
         #  Или лучше считать грубо, если на 99% процентов заполнен - все равно не полный?
+        # TODO - Полный - 100% Т.е. свойство is_full равно True
         if self.fullness >= .8:
             self.full_charged_distance += self.distance_to(self.target)
         elif self.is_empty:
