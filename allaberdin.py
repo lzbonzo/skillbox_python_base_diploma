@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
-from math import cos, sin, pi, radians
+from math import cos, sin, radians
 
-
-from astrobox.core import Drone, MotherShip
+from astrobox.core import Drone
 from robogame_engine.geometry import Point, Vector
-
-from stage_04_soldiers.devastator import Turel, Defender, DevastatorDrone
 
 
 class AllaberdinDrone(Drone):
@@ -41,10 +38,11 @@ class AllaberdinDrone(Drone):
             if not self.is_full:
                 self.next_asteroid = asteroids[0]
                 return
-        # if not self.near(self.mothership):
         self.next_asteroid = self.mothership
+        self.find_enemy()
 
     def find_enemy(self):
+        """Ищем следующего дрона для атаки"""
         enemy_drones = [drone for drone in self.scene.drones if not isinstance(drone, AllaberdinDrone)]
         enemy_drones = [drone for drone in enemy_drones if drone.is_alive and drone != self.mothership]
         if len(enemy_drones) > len(self.teammates) + 1:
@@ -63,6 +61,7 @@ class AllaberdinDrone(Drone):
         self.next_asteroid = None
 
     def brake_drones(self):
+        """ Ломаем дронов соперника"""
         enemy_drones = [drone for drone in self.scene.drones if not isinstance(drone, AllaberdinDrone)]
         enemy_drones = [drone for drone in enemy_drones if drone.is_alive and drone != self.mothership]
         for drone in enemy_drones:
@@ -86,7 +85,6 @@ class AllaberdinDrone(Drone):
                           and drone.distance_to(self) <= 300]
             if enemy_near:
                 self.enemy = enemy_near[0]
-
             if self.distance_to(self.mothership) < 200:
                 base_y = 150 + 300 * sin(radians(90 / (len(self.teammates) + 1) * self.id))
                 base_x = 150 + 300 * cos(radians(90 / (len(self.teammates) + 1) * self.id))
@@ -96,30 +94,25 @@ class AllaberdinDrone(Drone):
             if self.enemy:
                 field_width = self.scene.field[0]
                 field_height = self.scene.field[1]
-                # Верхний левый угол
                 if self.enemy.mothership.x < field_height / 2 and self.enemy.mothership.y > field_width / 2:
-                    angle = -90
+                    angle = -90  # Верхний левый угол
                 elif self.enemy.mothership.x > field_height / 2 and self.enemy.mothership.y > field_width / 2:
-                    angle = -180
+                    angle = -180  # Верхний правый угол
                 elif self.enemy.mothership.x > field_height / 2 and self.enemy.mothership.y < field_width / 2:
-                    angle = 180
+                    angle = 180  # Нижний левый угол
                 else:
-                    angle = 90
-
-                base_y = self.enemy.mothership.y + 150 * sin(radians(angle / (len(self.teammates) + 1) * self.id))
-                base_x = self.enemy.mothership.x + 150 * cos(radians(angle / (len(self.teammates) + 1) * self.id))
-                print(self.enemy.mothership.coord, base_x, base_y)
-
-                # self.vector = Vector.from_points(self.coord, self.enemy.mothership.coord)
-                # if self.distance_to(self.mothership) > 100:
-
+                    angle = 90  # Нижний правый угол
+                base_y = self.enemy.mothership.y + 300 * sin(radians(angle / (len(self.teammates) + 1) * self.id))
+                base_x = self.enemy.mothership.x + 300 * cos(radians(angle / (len(self.teammates) + 1) * self.id))
                 self.move_at(Point(base_x, base_y))
-                # self.turn_to(self.enemy)
-                self.gun.shot(self.enemy)
+                print(self.id, base_x, base_y)
+                if self.distance_to(self.enemy.mothership) <= 300:
+                    self.turn_to(self.enemy.mothership)
+                    self.gun.shot(self.enemy)
                 return
+        self.move_at(self.mothership)
 
     def on_heartbeat(self):
         self.brake_drones()
         if self.health <= 70:
             self.move_at(self.mothership)
-
