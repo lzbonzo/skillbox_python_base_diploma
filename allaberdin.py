@@ -62,6 +62,8 @@ class AllaberdinDrone(Drone):
 
     def brake_drones(self):
         """ Ломаем дронов соперника"""
+        return
+        # TODO - Тогда теряется весь смысл в соревнованиях. Без хаков, пожалуйста
         enemy_drones = [drone for drone in self.scene.drones if not isinstance(drone, AllaberdinDrone)]
         enemy_drones = [drone for drone in enemy_drones if drone.is_alive and drone != self.mothership]
         for drone in enemy_drones:
@@ -105,6 +107,7 @@ class AllaberdinDrone(Drone):
                 base_y = self.enemy.mothership.y + 300 * sin(radians(angle / (len(self.teammates) + 1) * self.id))
                 base_x = self.enemy.mothership.x + 300 * cos(radians(angle / (len(self.teammates) + 1) * self.id))
                 self.move_at(Point(base_x, base_y))
+                # TODO - Отладочную информацию выводите в лог-файл
                 print(self.id, base_x, base_y)
                 if self.distance_to(self.enemy.mothership) <= 300:
                     self.turn_to(self.enemy.mothership)

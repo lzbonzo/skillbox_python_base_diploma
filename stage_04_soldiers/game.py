@@ -14,14 +14,14 @@ NUMBER_OF_DRONES = 5
 
 if __name__ == '__main__':
     scene = SpaceField(
-        field=(900, 900),
-        speed=7,
-        asteroids_count=5,
+        field=(1200, 900),
+        speed=5,
+        asteroids_count=15,
         can_fight=True,
     )
 
     team_1 = [AllaberdinDrone() for _ in range(NUMBER_OF_DRONES)]
-    team_2 = [ReaperDrone() for _ in range(NUMBER_OF_DRONES)]
-    team_3 = [DrillerDrone() for _ in range(NUMBER_OF_DRONES)]
+    # team_2 = [ReaperDrone() for _ in range(NUMBER_OF_DRONES)]
+    # team_3 = [DrillerDrone() for _ in range(NUMBER_OF_DRONES)]
     team_4 = [DevastatorDrone() for _ in range(NUMBER_OF_DRONES)]
     scene.go()
