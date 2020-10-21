@@ -6,7 +6,6 @@ from astrobox.space_field import SpaceField
 from allaberdin import AllaberdinDrone
 from stage_03_harvesters.driller import DrillerDrone
 
-
 NUMBER_OF_DRONES = 5
 
 
