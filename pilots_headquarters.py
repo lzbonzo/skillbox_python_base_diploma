@@ -23,6 +23,12 @@ class Pilot:
     def __init__(self, drone):
         self.drone = drone
 
+    def on_born(self):
+        pass
+
+    def on_stop_at_mothership(self):
+        pass
+
     def move_at_base_point(self):
         field_width = self.drone.scene.field[0]
         field_height = self.drone.scene.field[1]
@@ -115,6 +121,7 @@ class Pilot:
         if attack_point.distance_to(self.drone.mothership) < 100:
             self.move_at_base_point()
             return
+        print(attack_point)
         self.drone.move_at(attack_point)
 
     def find_next(self):
@@ -161,13 +168,6 @@ class Pilot:
             drone.stop()
             drone.gun.shot(drone.mothership)
 
-    @property
-    def have_enemies(self):
-        enemies = [drone for drone in self.drone.scene.drones
-                   if drone not in self.drone.teammates and drone != self.drone and drone.is_alive]
-        if enemies:
-            return True
-
     def find_death_motherships(self):
         """ Проверяем, есть ли базы, на которые уже никто не вернется"""
         death_motherships = [mothership for mothership in self.drone.scene.motherships
@@ -175,23 +175,6 @@ class Pilot:
                              and not mothership.is_empty]
         if death_motherships:
             return death_motherships[0]
-
-    def find_enemy_motherships(self):
-        enemy_motherships = [mothership for mothership in self.drone.scene.motherships
-                             if mothership != self.drone.mothership and mothership.is_alive]
-        if len(enemy_motherships) >= self.drone.scene.teams_count - 1:
-            enemy_motherships = [mothership for mothership in enemy_motherships
-                                 if mothership not in [drone.enemy for drone in self.drone.teammates]]
-        if enemy_motherships:
-            self.drone.enemy = enemy_motherships[0]
-
-    @property
-    def live_enemies_less(self):
-        enemy_drones = [drone for drone in self.drone.scene.drones if drone.team != self.drone.team
-                        and drone.is_alive and drone not in self.drone.scene.motherships]
-        if enemy_drones:
-            if len(enemy_drones) <= len(self.drone.teammates) // 2:
-                return True
 
     def live_enemy_drones(self):
         return [drone for drone in self.drone.scene.drones
@@ -219,19 +202,10 @@ class DefenderPilot(Pilot):
     def on_born(self):
         self.move_at_base_point()
 
-    def on_stop_at_mothership(self):
-        enemy_drones = self.live_enemy_drones()
-        if len(enemy_drones) <= 3:
-            self.drone.pilot = KillerPilot(self.drone)
-            return
-        self.move_at_base_point()
-
     def on_wake_up(self):
         enemy_drones = self.live_enemy_drones()
-        if len(enemy_drones) <= 3:
-            print('killer', type(self.drone.enemy))
+        if len(enemy_drones) <= 2:
             self.drone.pilot = KillerPilot(self.drone)
-            return
         if self.find_death_motherships():
             if self.drone.id <= len(self.drone.teammates) // 2:
                 self.drone.pilot = MothershipReaperPilot(self.drone)
@@ -241,6 +215,11 @@ class DefenderPilot(Pilot):
         if self.drone.distance_to(self.drone.mothership) > 50:
             self.drone.turn_to(self.drone.enemy)
             self.drone.gun.shot(self.drone.enemy)
+
+    def need_to_be_killer(self):
+        enemy_drones = self.live_enemy_drones()
+        if len(enemy_drones) <= 2:
+            self.drone.pilot = KillerPilot(self.drone)
 
 
 class ReaperPilot(Pilot):
@@ -252,9 +231,6 @@ class ReaperPilot(Pilot):
     def on_stop_at_mothership(self):
         self.drone.turn_to(45)
         self.drone.unload_to(self.drone.mothership)
-        if not self.is_not_empty_asteroids:
-            self.drone.pilot = DefenderPilot(self.drone)
-            return
 
     def on_wake_up(self):
         if not self.is_not_empty_asteroids:
@@ -266,23 +242,10 @@ class ReaperPilot(Pilot):
 
 class MothershipReaperPilot(Pilot):
 
-    def on_born(self):
-        pass
-
-    def on_stop_at_mothership(self):
-        death_mothership = self.find_death_motherships()
-        if death_mothership:
-            self.drone.next_asteroid = death_mothership
-            return
-        self.drone.pilot = DefenderPilot(self.drone)
-
     def on_wake_up(self):
         death_mothership = self.find_death_motherships()
         if death_mothership:
             self.drone.death_mothership = death_mothership
-            for drone in self.drone.teammates:
-                if self.drone.near(drone):
-                    self.drone.move_at(Point(self.drone.x + 40, self.drone.y + 40))
             self.drone.move_at(death_mothership)
             return
         self.drone.pilot = DefenderPilot(self.drone)
@@ -292,36 +255,11 @@ class KillerPilot(Pilot):
 
     def on_wake_up(self):
         live_enemies = self.live_enemy_drones()
-        for enemy in live_enemies:
-            print(enemy, type(enemy))
         if not live_enemies:
             self.drone.pilot = ReaperPilot(self.drone)
             return
         self.drone.enemy = live_enemies[0]
-        self.move_at_enemy_base_point()
-        if self.drone.distance_to(self.drone.mothership) > 50:
+        self.move_at_enemy_attack_point()
+        if self.drone.distance_to(self.drone.mothership) > 100:
             self.drone.turn_to(self.drone.enemy)
             self.drone.gun.shot(self.drone.enemy)
-
-    def on_stop_at_mothership(self):
-        live_enemies = self.live_enemy_drones()
-        if not live_enemies:
-            self.drone.pilot = ReaperPilot(self.drone)
-            return
-        self.drone.enemy = live_enemies[0]
-        self.move_at_enemy_base_point()
-        if self.drone.distance_to(self.drone.mothership) > 50:
-            self.drone.turn_to(self.drone.enemy)
-            self.drone.gun.shot(self.drone.enemy)
-
-
-# TODO Последний защитник не летит к противнику
-
-
-# TODO Вопросы:
-#  Почему точка около базы меняется, ведь угол и координаты базы не меняются?
-#  К этому же вопросу. Почему иногда один дрон встает прям на другого?
-#  Почему дроны летят на одну и ту же точку к противнику? id влияет на место для атаки,
-#  так что координтаы не должны совпадать
-#  Верно ли я понимаю, что мало смысла проверять находится ли  дрон из комманды на линии огня,
-#  так как его положение во время проверки и во время выстрела вероятнее всего будет отличаться?
