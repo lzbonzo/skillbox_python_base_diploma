@@ -9,12 +9,13 @@ class PilotBoss:
     @staticmethod
     def choose_pilot(drone):
         """ Определяет какого пилота посадить """
-        if drone.id == 1:
-            return ReaperPilot(drone)
-        elif drone.id in [2, 3, 4]:
-            return MothershipKillerPilot(drone)
-        else:
+        if drone.scene.teams_count == 1:
             return DefenderPilot(drone)
+        else:
+            if drone.id in [2, 3]:
+                return ReaperPilot(drone)
+            else:
+                return DefenderPilot(drone)
 
 
 class Pilot:
@@ -23,15 +24,64 @@ class Pilot:
         self.drone = drone
 
     def move_at_base_point(self):
+        field_width = self.drone.scene.field[0]
         field_height = self.drone.scene.field[1]
-        if self.drone.mothership.y < field_height / 2:
-            # bottom corners
-            base_y = self.drone.mothership.y + 300 * sin(radians(90 / (len(self.drone.teammates) + 1) * self.drone.id))
-            base_x = self.drone.mothership.x + 300 * cos(radians(90 / (len(self.drone.teammates) + 1) * self.drone.id))
+        if self.drone.mothership.y > field_height / 2 and self.drone.mothership.x < field_width / 2:
+            # top left
+            base_y = self.drone.mothership.y + 300 * sin(
+                radians(-90 / (len(self.drone.teammates) + 1) * (self.drone.id - 1)))
+            base_x = self.drone.mothership.x + 300 * cos(
+                radians(-90 / (len(self.drone.teammates) + 1) * (self.drone.id - 1)))
+        elif self.drone.mothership.y > field_height / 2 and self.drone.mothership.x > field_width / 2:
+            # top right
+            base_y = self.drone.mothership.y + 300 * sin(
+                radians(90 / (len(self.drone.teammates) + 1) * (self.drone.id - 1)) - 180)
+            base_x = self.drone.mothership.x + 300 * cos(
+                radians(90 / (len(self.drone.teammates) + 1) * (self.drone.id - 1)) - 180)
+        elif self.drone.mothership.y < field_height / 2 and self.drone.mothership.x > field_width / 2:
+            # bottom right
+            base_y = self.drone.mothership.y + 300 * sin(
+                radians(180 - 90 / (len(self.drone.teammates) + 1) * (self.drone.id - 1)))
+            base_x = self.drone.mothership.x + 300 * cos(
+                radians(180 - 90 / (len(self.drone.teammates) + 1) * (self.drone.id - 1)))
         else:
-            # top corners
-            base_y = self.drone.mothership.y - 300 * sin(radians(-90 / (len(self.drone.teammates) + 1) * self.drone.id))
-            base_x = self.drone.mothership.x - 300 * cos(radians(-90 / (len(self.drone.teammates) + 1) * self.drone.id))
+            # bottom left
+            base_y = self.drone.mothership.y + 300 * sin(
+              radians(90 / (len(self.drone.teammates) + 1) * (self.drone.id - 1)))
+            base_x = self.drone.mothership.x + 300 * cos(
+               radians(90 / (len(self.drone.teammates) + 1) * (self.drone.id - 1)))
+        base_point = Point(abs(base_x), abs(base_y))
+        self.drone.turn_to(base_point)
+        self.drone.move_at(base_point)
+
+    def move_at_enemy_base_point(self):
+        field_width = self.drone.scene.field[0]
+        field_height = self.drone.scene.field[1]
+        if self.drone.enemy.mothership.y > field_height / 2 and self.drone.enemy.mothership.x < field_width / 2:
+            # top left
+            base_y = self.drone.enemy.mothership.y + 300 * sin(
+                radians(-90 / (len(self.drone.teammates) + 1) * self.drone.id))
+            base_x = self.drone.enemy.mothership.x + 300 * cos(
+                radians(-90 / (len(self.drone.teammates) + 1) * self.drone.id))
+        elif self.drone.enemy.mothership.y > field_height / 2 and self.drone.enemy.mothership.x > field_width / 2:
+            # top right
+            base_y = self.drone.enemy.mothership.y + 300 * sin(
+                radians(90 / (len(self.drone.teammates) + 1) * self.drone.id) - 180)
+            base_x = self.drone.enemy.mothership.x + 300 * cos(
+                radians(90 / (len(self.drone.teammates) + 1) * self.drone.id) - 180)
+        elif self.drone.enemy.mothership.y < field_height / 2 and self.drone.enemy.mothership.x > field_width / 2:
+            # bottom right
+            base_y = self.drone.enemy.mothership.y + 300 * sin(
+                radians(180 - 90 / (len(self.drone.teammates) + 1) * self.drone.id))
+            base_x = self.drone.enemy.mothership.x + 300 * cos(
+                radians(180 - 90 / (len(self.drone.teammates) + 1) * self.drone.id))
+        else:
+            # bottom left
+            base_y = self.drone.enemy.mothership.y + 300 * sin(
+              radians(90 / (len(self.drone.teammates) + 1) * self.drone.id))
+            base_x = self.drone.enemy.mothership.x + 300 * cos(
+               radians(90 / (len(self.drone.teammates) + 1) * self.drone.id))
+        print(abs(base_x), abs(base_y))
         self.drone.move_at(Point(abs(base_x), abs(base_y)))
 
     def move_at_enemy_attack_point(self):
@@ -39,30 +89,33 @@ class Pilot:
         field_height = self.drone.scene.field[1]
         if self.drone.enemy.y > field_height / 2 and self.drone.enemy.x < field_width / 2:
             # top left
-            enemy_y = self.drone.enemy.y + 400 * sin(
-                radians(-90 / (len(self.drone.teammates) + 1) * self.drone.id))
-            enemy_x = self.drone.enemy.x + 400 * cos(
-                radians(-90 / (len(self.drone.teammates) + 1) * self.drone.id))
+            enemy_y = self.drone.enemy.y + 500 * sin(
+                radians(-90 / (len(self.drone.teammates) + 1) * (self.drone.id - 1)))
+            enemy_x = self.drone.enemy.x + 500 * cos(
+                radians(-90 / (len(self.drone.teammates) + 1) * (self.drone.id - 1)))
         elif self.drone.enemy.y > field_height / 2 and self.drone.enemy.x > field_width / 2:
             # top right
-            enemy_y = self.drone.enemy.y + 400 * sin(
-                radians(90 / (len(self.drone.teammates) + 1) * self.drone.id) - 180)
-            enemy_x = self.drone.enemy.x + 400 * cos(
-                radians(90 / (len(self.drone.teammates) + 1) * self.drone.id) - 180)
+            enemy_y = self.drone.enemy.y + 500 * sin(
+                radians(90 / (len(self.drone.teammates) + 1) * (self.drone.id - 1)) - 180)
+            enemy_x = self.drone.enemy.x + 500 * cos(
+                radians(90 / (len(self.drone.teammates) + 1) * (self.drone.id - 1)) - 180)
         elif self.drone.enemy.y < field_height / 2 and self.drone.enemy.x > field_width / 2:
             # bottom right
             enemy_y = self.drone.enemy.y + 400 * sin(
-                radians(180 - 90 / (len(self.drone.teammates) + 1) * self.drone.id))
+                radians(180 - 90 / (len(self.drone.teammates) + 1) * (self.drone.id - 1)))
             enemy_x = self.drone.enemy.x + 400 * cos(
-                radians(180 - 90 / (len(self.drone.teammates) + 1) * self.drone.id))
+                radians(180 - 90 / (len(self.drone.teammates) + 1) * (self.drone.id - 1)))
         else:
             # bottom left
             enemy_y = self.drone.enemy.y - 400 * sin(
-              radians(90 / (len(self.drone.teammates) + 1) * self.drone.id))
+              radians(90 / (len(self.drone.teammates) + 1) * (self.drone.id - 1)))
             enemy_x = self.drone.enemy.x - 400 * cos(
-               radians(90 / (len(self.drone.teammates) + 1) * self.drone.id))
-        print('enemy', enemy_x, enemy_y, 'coord', self.drone.enemy.coord)
-        self.drone.move_at(Point(abs(enemy_x), abs(enemy_y)))
+               radians(90 / (len(self.drone.teammates) + 1) * (self.drone.id - 1)))
+        attack_point = Point(abs(enemy_x), abs(enemy_y))
+        if attack_point.distance_to(self.drone.mothership) < 100:
+            self.move_at_base_point()
+            return
+        self.drone.move_at(attack_point)
 
     def find_next(self):
         """
@@ -83,9 +136,6 @@ class Pilot:
         enemy_drones = [drone for drone in self.drone.scene.drones
                         if drone not in self.drone.teammates and drone != self.drone]
         enemy_drones = [drone for drone in enemy_drones if drone.is_alive and drone != self.drone.mothership]
-        if len(enemy_drones) > len(self.drone.teammates) + 1:
-            targets = [drone.enemy for drone in self.drone.teammates]
-            enemy_drones = [drone for drone in enemy_drones if drone not in targets and drone.have_gun]
         if enemy_drones:
             enemy_with_gun = [drone for drone in enemy_drones if drone.have_gun]
             if enemy_with_gun:
@@ -93,6 +143,7 @@ class Pilot:
             enemy_drones = sorted(enemy_drones, key=lambda x: x.distance_to(self.drone))
             self.drone.enemy = enemy_drones[0]
 
+    @property
     def is_not_empty_asteroids(self):
         asteroids = [asteroid for asteroid in self.drone.asteroids if not asteroid.is_empty]
         if asteroids:
@@ -117,20 +168,35 @@ class Pilot:
         if enemies:
             return True
 
-    def check_motherships(self):
+    def find_death_motherships(self):
         """ Проверяем, есть ли базы, на которые уже никто не вернется"""
-        live_drones_motherships = set(drone.mothership for drone in self.drone.scene.drones
-                                      if drone not in self.drone.teammates and drone != self.drone)
-        empty_motherships = [m for m in self.drone.scene.motherships
-                             if m not in live_drones_motherships and m != self.drone.mothership]
-        if empty_motherships:
-            return empty_motherships[0]
+        death_motherships = [mothership for mothership in self.drone.scene.motherships
+                             if mothership != self.drone.mothership and not mothership.is_alive
+                             and not mothership.is_empty]
+        if death_motherships:
+            return death_motherships[0]
 
     def find_enemy_motherships(self):
         enemy_motherships = [mothership for mothership in self.drone.scene.motherships
-                             if mothership != self.drone.mothership and mothership not in
-                             [drone.enemy for drone in self.drone.teammates]]
-        self.drone.enemy = enemy_motherships[0]
+                             if mothership != self.drone.mothership and mothership.is_alive]
+        if len(enemy_motherships) >= self.drone.scene.teams_count - 1:
+            enemy_motherships = [mothership for mothership in enemy_motherships
+                                 if mothership not in [drone.enemy for drone in self.drone.teammates]]
+        if enemy_motherships:
+            self.drone.enemy = enemy_motherships[0]
+
+    @property
+    def live_enemies_less(self):
+        enemy_drones = [drone for drone in self.drone.scene.drones if drone.team != self.drone.team
+                        and drone.is_alive and drone not in self.drone.scene.motherships]
+        if enemy_drones:
+            if len(enemy_drones) <= len(self.drone.teammates) // 2:
+                return True
+
+    def live_enemy_drones(self):
+        return [drone for drone in self.drone.scene.drones
+                if drone not in self.drone.teammates and drone != self.drone and drone.is_alive
+                and drone not in self.drone.scene.motherships]
 
     # def teammate_on_fireline(self):
     #     """ Проверям находится ли кто-то из команды на линии огня"""
@@ -154,66 +220,27 @@ class DefenderPilot(Pilot):
         self.move_at_base_point()
 
     def on_stop_at_mothership(self):
+        enemy_drones = self.live_enemy_drones()
+        if len(enemy_drones) <= 3:
+            self.drone.pilot = KillerPilot(self.drone)
+            return
         self.move_at_base_point()
 
     def on_wake_up(self):
+        enemy_drones = self.live_enemy_drones()
+        if len(enemy_drones) <= 3:
+            print('killer', type(self.drone.enemy))
+            self.drone.pilot = KillerPilot(self.drone)
+            return
+        if self.find_death_motherships():
+            if self.drone.id <= len(self.drone.teammates) // 2:
+                self.drone.pilot = MothershipReaperPilot(self.drone)
+                return
+        self.move_at_base_point()
         self.find_enemy()
-        self.drone.turn_to(self.drone.enemy)
-        self.drone.gun.shot(self.drone.enemy)
-
-
-class MothershipKillerPilot(Pilot):
-
-    def on_born(self):
-        self.find_enemy_motherships()
-        self.move_at_enemy_attack_point()
-
-    def on_stop_at_mothership(self):
-        self.find_enemy_motherships()
-        self.move_at_enemy_attack_point()
-
-    def on_wake_up(self):
-        self.drone.turn_to(self.drone.enemy)
-        self.drone.gun.shot(self.drone.enemy)
-
-    def on_wake_up_1(self):
-        if self.drone.health <= 80:
-            self.drone.turn_to(self.drone.mothership)
-            self.drone.move_at(self.drone.mothership)
-            return
-
-        if self.have_enemies:
-            self.find_enemy()
-            if self.drone.distance_to(self.drone.mothership) > 100:
-                enemy_near = [drone for drone in self.drone.scene.drones
-                              if drone not in self.drone.teammates and drone != self.drone]
-                enemy_near = [drone for drone in enemy_near if drone.is_alive
-                              and self.drone.distance_to(drone) < 300]
-
-
-                enemy_near = sorted(enemy_near, key=lambda x: x.distance_to(self.drone))
-                if enemy_near:
-                    self.drone.enemy = enemy_near[0]
-                else:
-                    # self.find_enemy()
-                    self.move_at_enemy_attack_point()
-                enemy_near_mothership = [drone for drone in self.drone.scene.drones
-                                         if drone not in self.drone.teammates and drone != self.drone
-                                         and drone.distance_to(self.drone.mothership) < 200]
-                if enemy_near_mothership:
-                    self.drone.enemy = enemy_near_mothership[0]
-                self.drone.turn_to(self.drone.enemy)
-                # if not self.drone.teammate_on_fireline():
-
-                    # self.drone.stop()
-
-                    # return
-                    # self.drone.vector = Vector.from_points(self.drone.coord, self.drone.enemy.coord)
-                    # self.drone.move_at_enemy_attack_point()
-
-                self.drone.gun.shot(self.drone.enemy)
-            return
-        self.drone.move_at(self.drone.mothership)
+        if self.drone.distance_to(self.drone.mothership) > 50:
+            self.drone.turn_to(self.drone.enemy)
+            self.drone.gun.shot(self.drone.enemy)
 
 
 class ReaperPilot(Pilot):
@@ -225,10 +252,76 @@ class ReaperPilot(Pilot):
     def on_stop_at_mothership(self):
         self.drone.turn_to(45)
         self.drone.unload_to(self.drone.mothership)
+        if not self.is_not_empty_asteroids:
+            self.drone.pilot = DefenderPilot(self.drone)
+            return
 
     def on_wake_up(self):
+        if not self.is_not_empty_asteroids:
+            self.drone.pilot = DefenderPilot(self.drone)
+            return
         self.find_next()
         self.drone.move_at(self.drone.next_asteroid)
 
-# TODO Enemy mothership attack point. Should be closer to self.mothership
-# TODO If no asteroids change pilot to fight in space.
+
+class MothershipReaperPilot(Pilot):
+
+    def on_born(self):
+        pass
+
+    def on_stop_at_mothership(self):
+        death_mothership = self.find_death_motherships()
+        if death_mothership:
+            self.drone.next_asteroid = death_mothership
+            return
+        self.drone.pilot = DefenderPilot(self.drone)
+
+    def on_wake_up(self):
+        death_mothership = self.find_death_motherships()
+        if death_mothership:
+            self.drone.death_mothership = death_mothership
+            for drone in self.drone.teammates:
+                if self.drone.near(drone):
+                    self.drone.move_at(Point(self.drone.x + 40, self.drone.y + 40))
+            self.drone.move_at(death_mothership)
+            return
+        self.drone.pilot = DefenderPilot(self.drone)
+
+
+class KillerPilot(Pilot):
+
+    def on_wake_up(self):
+        live_enemies = self.live_enemy_drones()
+        for enemy in live_enemies:
+            print(enemy, type(enemy))
+        if not live_enemies:
+            self.drone.pilot = ReaperPilot(self.drone)
+            return
+        self.drone.enemy = live_enemies[0]
+        self.move_at_enemy_base_point()
+        if self.drone.distance_to(self.drone.mothership) > 50:
+            self.drone.turn_to(self.drone.enemy)
+            self.drone.gun.shot(self.drone.enemy)
+
+    def on_stop_at_mothership(self):
+        live_enemies = self.live_enemy_drones()
+        if not live_enemies:
+            self.drone.pilot = ReaperPilot(self.drone)
+            return
+        self.drone.enemy = live_enemies[0]
+        self.move_at_enemy_base_point()
+        if self.drone.distance_to(self.drone.mothership) > 50:
+            self.drone.turn_to(self.drone.enemy)
+            self.drone.gun.shot(self.drone.enemy)
+
+
+# TODO Последний защитник не летит к противнику
+
+
+# TODO Вопросы:
+#  Почему точка около базы меняется, ведь угол и координаты базы не меняются?
+#  К этому же вопросу. Почему иногда один дрон встает прям на другого?
+#  Почему дроны летят на одну и ту же точку к противнику? id влияет на место для атаки,
+#  так что координтаы не должны совпадать
+#  Верно ли я понимаю, что мало смысла проверять находится ли  дрон из комманды на линии огня,
+#  так как его положение во время проверки и во время выстрела вероятнее всего будет отличаться?
