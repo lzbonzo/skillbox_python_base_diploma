@@ -9,6 +9,9 @@ class PilotBoss:
     @staticmethod
     def choose_pilot(drone):
         """ Определяет какого пилота посадить """
+
+        # TODO - Не очень удачная идея определять стратегю на основе id. Т.к. если поменять очередность содания команд,
+        #  то все id ваших дронов будут больше 5
         if drone.scene.teams_count == 1:
             return DefenderPilot(drone)
         else:
@@ -159,6 +162,7 @@ class Pilot:
 
     def brake_drones(self):
         """ Ломаем дронов соперника"""
+        return
         enemy_drones = [drone for drone in self.drone.scene.drones
                         if drone not in self.drone.teammates and drone != self.drone]
         enemy_drones = [drone for drone in enemy_drones if drone.is_alive and drone != self.drone.mothership]
