@@ -2,7 +2,7 @@
 
 from astrobox.core import Drone
 
-from pilots_headquarters import PilotBoss
+from pilots_headquarters import DefenderPilot, ReaperPilot
 
 
 class AllaberdinDrone(Drone):
@@ -12,7 +12,9 @@ class AllaberdinDrone(Drone):
         self.enemy = None
         self.next_asteroid = None
         self.death_mothership = None
-        self.pilot = PilotBoss().choose_pilot(self)
+        teammates = [dr for dr in self.scene.drones if isinstance(dr, AllaberdinDrone)]
+        self.number = teammates.index(self)
+        self.pilot = DefenderPilot(self)
 
     def on_born(self):
         self.pilot.on_born()
@@ -21,10 +23,12 @@ class AllaberdinDrone(Drone):
         self.pilot.find_next()
         self.move_at(self.next_asteroid)
 
+
     def on_stop_at_asteroid(self, asteroid):
-        if not asteroid.is_empty:
-            self.turn_to(self.mothership)
-            self.load_from(asteroid)
+        if isinstance(self.pilot, ReaperPilot):
+            if not asteroid.is_empty:
+                self.turn_to(self.mothership)
+                self.load_from(asteroid)
 
     def on_stop_at_mothership(self, mothership):
         if mothership != self.mothership and not mothership.is_empty:
