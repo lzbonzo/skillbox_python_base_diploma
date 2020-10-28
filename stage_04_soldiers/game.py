@@ -16,7 +16,7 @@ NUMBER_OF_DRONES = 5
 if __name__ == '__main__':
     scene = SpaceField(
         field=(1200, 900),
-        speed=7,
+        speed=5,
         asteroids_count=15,
         can_fight=True,
     )
@@ -27,3 +27,5 @@ if __name__ == '__main__':
     team_1 = [AllaberdinDrone() for _ in range(NUMBER_OF_DRONES)]
 
     scene.go()
+
+# зачёт!

@@ -44,5 +44,6 @@ class AllaberdinDrone(Drone):
     def on_heartbeat(self):
         if self.health <= 70:
             self.move_at(self.mothership)
+        # TODO - Убирайте неиспользумый код
         # self.pilot.brake_drones()
 
