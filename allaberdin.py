@@ -177,32 +177,6 @@ class ReaperPilot(Pilot):
         self.find_next()
         self.drone.move_at(self.drone.next_asteroid)
 
-    @property
-    def is_enemy_near(self):
-        enemy_near = [drone for drone in self.drone.scene.drones if drone not in self.drone.teammates]
-        for drone in enemy_near:
-            if self.drone.distance_to(drone) < 300:
-                self.drone.enemy = drone
-                return True
-
-
-class MothershipKillerPilot(Pilot):
-
-    def on_wake_up(self):
-        live_enemies = self.live_enemy_drones()
-        if not live_enemies:
-            self.drone.pilot = ReaperPilot(self.drone)
-            return
-        self.find_enemy()
-        if not self.drone.enemy.mothership.is_alive:
-            self.drone.pilot = KillerPilot(self.drone)
-            return
-        self.move_at_enemy_base_point()
-        if self.drone.distance_to(self.drone.mothership) > 100:
-            if not self.teammate_on_fireline:
-                self.drone.turn_to(self.drone.enemy.mothership)
-                self.drone.gun.shot(self.drone.enemy.mothership)
-
 
 class MothershipReaperPilot(Pilot):
 
